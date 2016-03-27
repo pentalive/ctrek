@@ -15,3 +15,6 @@ CTREK
  
  Klingons dont do anything just yet... work in progress.
  
+ Make the program-
+ Make ctrek should work as this is a very simple program so far.
+ 
