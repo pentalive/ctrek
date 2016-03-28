@@ -18,3 +18,6 @@ CTREK
  Make the program-
  Make ctrek should work as this is a very simple program so far.
  
+Enter commands by pressing a letter followed by two digits (usually 1-8 for most commands to corrispond to x,y coordinates of
+secotor or quadrant or 0-9 for phaser %. Follow that with a <cr>. So to Warp to quadrant 5,6 type W 5 6 <cr>. 
+'h' prints a list of commands.
