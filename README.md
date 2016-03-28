@@ -1,4 +1,4 @@
-# githome
+# CTREK
 CTREK
  
  Tradtional Star Trek game in C
