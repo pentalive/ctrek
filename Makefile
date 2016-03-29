@@ -1,2 +1,2 @@
 ctrek: ctrek.c
-	cc ctrek.c -o ctrek
+	cc ctrek.c -lm -o ctrek
