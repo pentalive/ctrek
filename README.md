@@ -11,13 +11,14 @@ CTREK
  
  Right now - you can move from sector to sector, move to a different quadrant,
  employ your phasers or torpeods to destroy your opponents. Moving to a sector
- next to a base will allow refueling and replenishment.
+ next to a base will allow refueling and replenishment if there are no opponents in
+ the quadrant.
  
  Klingons dont do anything just yet... work in progress.
  
  Make the program-
- Make ctrek should work as this is a very simple program so far.
+ Makefile is included
  
-Enter commands by pressing a letter followed by two digits (usually 1-8 for most commands to corrispond to x,y coordinates of
+Enter commands by pressing a letter followed by two digits (usually 1-8 for most commands to corispond to x,y coordinates of
 secotor or quadrant or 0-9 for phaser %. Follow that with a <cr>. So to Warp to quadrant 5,6 type W 5 6 <cr>. 
 'h' prints a list of commands.
