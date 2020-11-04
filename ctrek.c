@@ -71,6 +71,9 @@ int ptorps;                 /* current supply of photon torpedos           */
 int energy;                 /* current supply of energy                    */
 
 
+/*
+** calculate the distance -thanks Pythagorus
+*/
 int distance(int x1, int y1, int x2, int y2) {
   return (int) sqrtf( (float) (((x1-x2)*(x1-x2)) + ((y1-y2)*(y1-y2)))   );
 }
@@ -121,7 +124,11 @@ void BuildQuadrant(void) {
       if (s > 3) s = 1;
       
       b = random() % 6;
-      if (b > 2) b = 0;
+      if (b > 2) {
+	b = 0;
+      } else {
+	b = 1;
+      }
 
       k = random() % 10;
       if (k > 4) k = 0;
@@ -133,11 +140,15 @@ void BuildQuadrant(void) {
       quadrant[x][y][STAR] = s;
       quadrant[x][y][BASE] = b;
       quadrant[x][y][KLIG] = k;    
-      quadrant[x][y][SCAN] = TRUE;
+      quadrant[x][y][SCAN] = FALSE;
       
     }
   }
 }
+
+/*
+** Build a sector as we arrive.
+ */
 
 void BuildSector(void) {
 
@@ -209,23 +220,36 @@ void DoDisplay(void) {
   int x,y;
 
 
- 
+  /* set condtion */
   cond=GREEN;
   for (x=-1; x<2; x++) {
     for (y=-1; y<2; y++) {
       if (sector[esx+x][esy+y] == BASE) {
 	cond = DOCKED;
       }
+      quadrant[eqx+x][eqy+y][SCAN] = TRUE;
     }
   }
+  
   if (quadrant[eqx][eqy][KLIG] > 0) cond = RED;
 
+
+  /* if docked resupply and repair */
   if (cond == DOCKED) {
+    /* restock */
     energy = 5000;
     ptorps = 10;
+
+    /* repairs */
+    for (x = 1; x<8; x++) {
+      device[x] = device[x] + rand() % 5;
+      if (device[x] > 99) {
+	device[x] = 99;
+      }
+    }
   }
 
-  printf("CTREK  [%d,%d : %d,%d]  Energy:%d  (SBK)",eqx,esx,eqy,esy,energy);
+  printf("CTREK  [q:%d,%d : s:%d,%d]  Energy:%d  (SBK)",eqx,eqy,esx,esy,energy);
 
   switch (cond) {
   case GREEN: printf("Green "); break;
@@ -354,7 +378,7 @@ void DoCommand(void) {
     printf("W warp    x,y Move to another sector                    \n");
     printf("I impulse x,y Move within a sector                      \n");
     printf("T torpedo x,y Launch a photon torpedo                   \n");
-    printf("P phasers %pw Attack using phasors                      \n");
+    printf("P phasers %%w Attack using phasors                      \n");
     printf("R Repair  sys Fix systems (5 points unless docked)      \n");
     printf("H Help        This list of commands                     \n");
     printf("\n\n");
@@ -418,7 +442,7 @@ void DoCommand(void) {
   case 'w':
     x = getdigit();
     y = getdigit();
-    if (x>8 || y>8) {
+    if (x>8 || y>8 || x<1 || y<1) {
       printf("Navigatonal computer rejects coordinates [%d,:%d]\n",x,y);
     } else {
       if (devicefail(WDA)) {
@@ -439,7 +463,7 @@ void DoCommand(void) {
   case 'i':
     x = getdigit();
     y = getdigit();
-    if ( x > 8 || y > 8) {
+    if ( x > 8 || y > 8 || x<1 || y<1 ) {
       printf("Navigational computer rejects coordinate %d,%d\n",x,y);
     } else {
       if (devicefail(IDA)) {
@@ -461,6 +485,56 @@ void DoCommand(void) {
   }
 }
 
+void DoKlingons(void) {
+  int i,j;  /* a coordinate */
+  int dmg;  /* damage done  */
+  int sys;  /* system getting damaged */
+
+  
+  for(i=1; i<9; i++) {
+    for(j=1; j<9; j++) {
+      
+      /* not in same quad with enterprise */
+      if (i!= eqx && j != eqy) {
+	
+	/* A base and a klingon in same quadrant */
+	if (quadrant[i][j][BASE] == 1 && quadrant[i][j][KLIG]>1) {
+	  
+	  printf("Base at %d,%d is under attack -",i,j);
+	  /* a small chance the klingons kill the base */
+	  if (rand() % 99 < 2) {
+	    printf("and was destroyed \n");
+	    quadrant[i][j][BASE] = 0;
+	  } else {
+	    printf("and continues to survive \n");
+	  }
+	}
+      }
+    }
+  }
+
+  /*
+  ** In our quadrant
+  */
+  for(i=1; i<9; i++) {
+    for(j=1; j<9; j++) {
+      if (sector[i][j] == KLIG) {
+	dmg = rand() % 20;
+	sys = (rand() % 7) + 1;
+	device[sys] = device[sys] - dmg;
+	if (device[sys] < 0) {
+	  device[sys] = 0;
+	}
+	DoDisplay();
+	printf("Klingon at [%d,%d] fires - %d damage to ",i,j,dmg);
+	ShortNameDevice(sys);
+	printf("\n");
+      }
+    } 
+  }
+}
+
+
 
 int main(int argc, char ** argv) {
 
@@ -479,6 +553,7 @@ int main(int argc, char ** argv) {
   do {
     DoDisplay();
     DoCommand();
+    DoKlingons();
   } while (! done);
 }
 
