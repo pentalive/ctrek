@@ -148,33 +148,51 @@ void BuildQuadrant(void) {
 
 /*
 ** Build a sector as we arrive.
- */
+*/
 
 void BuildSector(void) {
 
   int x,y,i,j;
-  
+
+
+  /*
+  ** make our sector empty
+  */
   for(x=1; x<9; x++) {
     for(y=1; y<9; y++) {
       sector[x][y]=EMTY;
     }
   }
 
+  /*
+  ** place the enterprise
+  */
   sector[esx][esy] = ENTP;
 
+  /*
+  ** Place stuff first stars, then each in turn
+  */
   for(i=STAR; i<KLIB; i++) {
+    /* but don't place more enterprises */
     if (i != ENTP) {
+      
+      /* for each of this kind of item... */
       for(j=0; j<quadrant[eqx][eqy][i]; j++) {
+	
+	/* find an empty spot for the next item */
 	do {
 	  x = random() % 8 + 1;
 	  y = random() % 8 + 1;
 	} while (sector[x][y] != EMTY);
+
+	/* and put it there */
 	sector[x][y] = i;
       }
     }
   }
 }
 
+/* print the short name for a device */
 void ShortNameDevice(int which) {
   switch (which) {
   case NOT: printf("NOT"); break;
@@ -189,6 +207,7 @@ void ShortNameDevice(int which) {
   }
 }
 
+/* print a long name for a device */
 void LongNameDevice(int which) {
   switch (which) {
   case NOT: printf("Device zero");break;
@@ -204,6 +223,7 @@ void LongNameDevice(int which) {
 }
 
 
+/* did a device fail when we tried to use it? */
 int devicefail(int thisdevice) {
   
   if (device[thisdevice] > (random() % 99)) {
@@ -227,10 +247,15 @@ void DoDisplay(void) {
       if (sector[esx+x][esy+y] == BASE) {
 	cond = DOCKED;
       }
+      /* 
+      ** while we are doing the items +-1 xy around us, 
+      ** set the long range scan value to true.
+      */
       quadrant[eqx+x][eqy+y][SCAN] = TRUE;
     }
   }
-  
+
+  /* a klingon anywhere in this quadrant - red alert */
   if (quadrant[eqx][eqy][KLIG] > 0) cond = RED;
 
 
@@ -249,13 +274,18 @@ void DoDisplay(void) {
     }
   }
 
-  printf("CTREK  [q:%d,%d : s:%d,%d]  Energy:%d  (SBK)",eqx,eqy,esx,esy,energy);
+  /*
+  ** do the actual display
+  */
+  printf("CTREK  [q:%d,%d : s:%d,%d]  Energy:%d  (SBK)",
+	 eqx,eqy,esx,esy,energy);
 
   switch (cond) {
-  case GREEN: printf("Green "); break;
-  case RED:   printf(" RED  "); break;
-  case DOCKED:printf("Docked"); break;
+  case GREEN: printf("-Green-"); break;
+  case RED:   printf("--RED--"); break;
+  case DOCKED:printf("Docked "); break;
   }
+  
   printf(" Torps:%d ",ptorps);
   printf(" Bases/Klingons: %d/%d",bases,klingons);
   printf("\n");
@@ -360,18 +390,39 @@ int getdigit(void) {
 
 void DoCommand(void) {
   char c,w;
-  int x,y;    /* 1st & 2nd parameters for command usually x and y coord */
-  int tx,ty;  /* Torpedo x and y as the torpedo travels to target       */
-  int cdone;  /* True if Torpedo is moving false to exit move torp loop */
-  int dist;   /* The result of a distance calculation                   */
+  int x,y;     /* 1st & 2nd parameters for command usually x and y coord */
+  int tx,ty;   /* Torpedo x and y as the torpedo travels to target       */
+  int cdone;   /* True if Torpedo is moving false to exit move torp loop */
+  int dist;    /* The result of a distance calculation                   */
+  int percent; /* Energy applied to phasers increases chances of hitting */
 
   do {
     c = getchar();
   } while ( ! isalpha(tolower(c)));
 
   switch (c) {
+
+    /* 
+    ** stop for repairs, consume a day and repair some systems
+    */
+  case 'r':
+    for (x = 1; x<8; x++) {
+      device[x] = device[x] + rand() % 5;
+      if (device[x] > 99) {
+	device[x] = 99;
+      }
+    }
+    dayz--;
+    break;
+
+    /*
+    ** quit - leave game
+    */
   case 'q': done = TRUE; break;
 
+    /*
+    ** display help
+    */
   case 'h':
     printf("                   --- commands ---                 \n");
     printf("Q quit        End game                                  \n");
@@ -384,6 +435,40 @@ void DoCommand(void) {
     printf("\n\n");
     break;
 
+
+  case 'p':
+    
+    percent = 10*getdigit() + getdigit();
+    if (quadrant[eqx][eqy][KLIG] > 0) {
+      if (energy < (3 * percent)) {
+	printf("Not enough energy to charge phaser banks\n");
+      } else {
+	energy = energy - 3 * percent;
+	if (devicefail(PHA)) {
+	  printf("Phaser system offline \n");
+	} else {
+	  for (x=1; x<9; x++) {
+	    for(y=1; y<9; y++) {
+	      if (sector[x][y] == KLIG) {
+		printf("Klingon at %d,%d ",x,y);
+		if (rand()%99 < percent) {
+		  printf("destroyed\n");
+		  sector[x][y] = EMTY;
+		  quadrant[eqx][eqy][KLIG]--;
+		  klingons--;
+		} else {
+		  printf("survived\n");
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    } else {
+      printf("No targets in this quadrant\n");
+    }
+    break;
+      
     
   case 't':
     x = getdigit();
@@ -402,14 +487,15 @@ void DoCommand(void) {
 	  ptorps--;
 	  tx = esx;
 	  ty = esy;
+	  printf("Torpedo track:");
 	  do {
 	    if (tx > x) tx--;
 	    if (tx < x) tx++;
 	    if (ty > y) ty--;
 	    if (ty < y) ty++;
-	  
+
 	    if (sector[tx][ty] == EMTY) {
-	      printf("Torpedo Track %d,%d\n",tx,ty);
+	      printf(" %d,%d ",tx,ty);
 	    } else {
 	      if (sector[tx][ty] == KLIG) {
 		printf("The Klingon at %d,%d destroyed\n",tx,ty);
@@ -449,6 +535,9 @@ void DoCommand(void) {
 	printf("Warp Field Failure \n");
       } else {
 	dist = distance(eqx,eqy,x,y);
+	if ((50 * dist) > energy) {
+	  printf("insufficient energy for that warp transit\n");
+	} else {
 	printf("Distance %d ",dist);
 	printf("Warp tranist complete - record ship arival at %d,%d\n",x,y);
 	eqx = x;
@@ -456,6 +545,7 @@ void DoCommand(void) {
 	dayz = dayz - dist;
 	BuildSector();
 	energy = energy - (50*dist);
+	}
       }
     }
     break;
@@ -525,7 +615,7 @@ void DoKlingons(void) {
 	if (device[sys] < 0) {
 	  device[sys] = 0;
 	}
-	DoDisplay();
+	/* DoDisplay(); */
 	printf("Klingon at [%d,%d] fires - %d damage to ",i,j,dmg);
 	ShortNameDevice(sys);
 	printf("\n");
