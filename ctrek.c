@@ -638,7 +638,7 @@ void DoKlingons(void) {
 
 int main(int argc, char ** argv) {
 
-  
+  int i,j;
 
   Setup();
   BuildQuadrant();
@@ -654,6 +654,31 @@ int main(int argc, char ** argv) {
     DoDisplay();
     DoCommand();
     DoKlingons();
+
+    if (energy < 100) {
+      printf("Out of energy, the enterprise floats listlessley waiting \n");
+      printf("rescue from the nearest Klingon\n");
+      done = TRUE;
+    }
+
+    if (klingons = 0) {
+      printf("Your mission was a sucess, \n");
+      printf("the Klingon threat has been removed\n");
+      done = TRUE;
+    }
+
+    j = 0;
+    for (i=1; i<9; i++) {
+      j = j + device[i];
+    }
+    if (j < 5) {
+      printf("Your mission failed\n");
+      printf("The destroyed hulk of the enterprise floats \n");
+      printf("listlessly in space\n");
+      done = TRUE;
+    }
+
+    
   } while (! done);
 }
 
