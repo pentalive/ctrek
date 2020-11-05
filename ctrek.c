@@ -119,7 +119,7 @@ void BuildQuadrant(void) {
     
   for (x=1; x<9; x++) {
     for (y=1; y<9; y++) {
-
+      
       s = random() % 10;
       if (s > 3) s = 1;
       
@@ -286,7 +286,7 @@ void DoDisplay(void) {
   case DOCKED:printf("Docked "); break;
   }
   
-  printf(" Torps:%d ",ptorps);
+  printf("\n Torps:%d ",ptorps);
   printf(" Bases/Klingons: %d/%d",bases,klingons);
   printf("\n");
 
@@ -412,6 +412,12 @@ void DoCommand(void) {
 	device[x] = 99;
       }
     }
+    if (energy < 3000) {
+      energy = energy + 500;
+    }
+    if (energy >5000) {
+      energy = 5000;
+    }
     dayz--;
     break;
 
@@ -440,10 +446,10 @@ void DoCommand(void) {
     
     percent = 10*getdigit() + getdigit();
     if (quadrant[eqx][eqy][KLIG] > 0) {
-      if (energy < (3 * percent)) {
+      if (energy < (15 * percent)) {
 	printf("Not enough energy to charge phaser banks\n");
       } else {
-	energy = energy - 3 * percent;
+	energy = energy - 15 * percent;
 	if (devicefail(PHA)) {
 	  printf("Phaser system offline \n");
 	} else {
@@ -451,7 +457,7 @@ void DoCommand(void) {
 	    for(y=1; y<9; y++) {
 	      if (sector[x][y] == KLIG) {
 		printf("Klingon at %d,%d ",x,y);
-		if (rand()%99 < percent) {
+		if (rand()%99 <= percent) {
 		  printf("destroyed\n");
 		  sector[x][y] = EMTY;
 		  quadrant[eqx][eqy][KLIG]--;
@@ -559,15 +565,19 @@ void DoCommand(void) {
       if (devicefail(IDA)) {
 	printf("Impulse Drive failure\n");
       } else {
-	if (sector[x][y] != EMTY) {
-	  printf("Destination occupied transit inhibited\n");
+	if (energy < 3000) {
+	  printf("Insufficient energyd for impulse transit\n");
 	} else {
-	  printf("Transit to %d,%d complete\n",x,y);
-	  energy = energy - 3000;
-	  sector[esx][esy] = EMTY;
-	  sector[x][y] = ENTP;
-	  esx = x;
-	  esy = y;
+	  if (sector[x][y] != EMTY) {
+	    printf("Destination occupied transit inhibited\n");
+	  } else {
+	    printf("Transit to %d,%d complete\n",x,y);
+	    energy = energy - 3000;
+	    sector[esx][esy] = EMTY;
+	    sector[x][y] = ENTP;
+	    esx = x;
+	    esy = y;
+	  }
 	}
       }
     }
