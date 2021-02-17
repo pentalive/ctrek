@@ -287,7 +287,7 @@ void DoDisplay(void) {
   }
   
   printf("\n Torps:%d ",ptorps);
-  printf(" Bases/Klingons: %d/%d",bases,klingons);
+  printf(" Bases/Klingons: %d/%d ",bases,klingons);
   printf("\n");
 
   printf("    1  2  3  4  5  6  7  8  sys %%%%");
@@ -544,7 +544,7 @@ void DoCommand(void) {
 	if ((50 * dist) > energy) {
 	  printf("insufficient energy for that warp transit\n");
 	} else {
-	printf("Distance %d ",dist);
+	printf("Distance %d\n",dist);
 	printf("Warp tranist complete - record ship arival at %d,%d\n",x,y);
 	eqx = x;
 	eqy = y;
@@ -605,6 +605,7 @@ void DoKlingons(void) {
 	  if (rand() % 99 < 2) {
 	    printf("and was destroyed \n");
 	    quadrant[i][j][BASE] = 0;
+	    bases--;
 	  } else {
 	    printf("and continues to survive \n");
 	  }
@@ -655,13 +656,19 @@ int main(int argc, char ** argv) {
     DoCommand();
     DoKlingons();
 
+
+    if (dayz == 0) {
+      printf("You have run out of time, the Klingons proceed to attack the Federation\n");
+      done = TRUE;
+    }
+
     if (energy < 100) {
       printf("Out of energy, the enterprise floats listlessley waiting \n");
       printf("rescue from the nearest Klingon\n");
       done = TRUE;
     }
 
-    if (klingons = 0) {
+    if (klingons == 0) {
       printf("Your mission was a sucess, \n");
       printf("the Klingon threat has been removed\n");
       done = TRUE;
@@ -671,6 +678,7 @@ int main(int argc, char ** argv) {
     for (i=1; i<9; i++) {
       j = j + device[i];
     }
+    
     if (j < 5) {
       printf("Your mission failed\n");
       printf("The destroyed hulk of the enterprise floats \n");
