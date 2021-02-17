@@ -565,14 +565,16 @@ void DoCommand(void) {
       if (devicefail(IDA)) {
 	printf("Impulse Drive failure\n");
       } else {
-	if (energy < 3000) {
+	dist = distance(x,y,esx,esy);
+	printf(" Distance to coordinate %d \n",dist);
+	if (energy < 10*dist) {
 	  printf("Insufficient energyd for impulse transit\n");
 	} else {
 	  if (sector[x][y] != EMTY) {
 	    printf("Destination occupied transit inhibited\n");
 	  } else {
 	    printf("Transit to %d,%d complete\n",x,y);
-	    energy = energy - 3000;
+	    energy = energy - 10*dist;
 	    sector[esx][esy] = EMTY;
 	    sector[x][y] = ENTP;
 	    esx = x;
@@ -645,10 +647,10 @@ int main(int argc, char ** argv) {
   BuildQuadrant();
   BuildSector();
 
-  dayz = (klingons * 30) / bases;
+  dayz = (klingons * 60) / bases;
 
   printf("You have %d days to seek and destroy %d klingons\n",dayz,klingons);
-  printf("with support from %d bases\n",bases);
+  printf("with support from %d bases\n\n\n",bases);
 
   done = FALSE;
   do {
@@ -659,12 +661,14 @@ int main(int argc, char ** argv) {
 
     if (dayz == 0) {
       printf("You have run out of time, the Klingons proceed to attack the Federation\n");
+      printf("%d klingons remain\n",klingons);
       done = TRUE;
     }
 
     if (energy < 100) {
       printf("Out of energy, the enterprise floats listlessley waiting \n");
       printf("rescue from the nearest Klingon\n");
+      printf("%d klingons remain\n",klingons);
       done = TRUE;
     }
 
@@ -674,6 +678,10 @@ int main(int argc, char ** argv) {
       done = TRUE;
     }
 
+
+    /*
+    ** If the ship is sufficiently damaged - end the game
+    */
     j = 0;
     for (i=1; i<9; i++) {
       j = j + device[i];
@@ -683,6 +691,7 @@ int main(int argc, char ** argv) {
       printf("Your mission failed\n");
       printf("The destroyed hulk of the enterprise floats \n");
       printf("listlessly in space\n");
+      printf("%d klingons remain\n",klingons);
       done = TRUE;
     }
 
