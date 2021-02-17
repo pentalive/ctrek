@@ -283,7 +283,7 @@ void DoDisplay(void) {
   switch (cond) {
   case GREEN: printf("-Green-"); break;
   case RED:   printf("--RED--"); break;
-  case DOCKED:printf("Docked "); break;
+  case DOCKED:printf("Docked-"); break;
   }
   
   printf("\n Torps:%d ",ptorps);
